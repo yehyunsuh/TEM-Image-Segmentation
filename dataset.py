@@ -11,10 +11,10 @@ import torchvision.transforms as transforms
 class CustomDataset(Dataset):
     def __init__(self, 
                  args,
+                 dtype,
                  transform = None
                 ): 
         self.args = args
-        dtype = 'train' if args.train else 'validation'
         pnp = 'pore' if args.pore else 'np'
     
         # csv that contains metadata
@@ -34,6 +34,9 @@ class CustomDataset(Dataset):
         self.lab_img_list = os.listdir(self.lab_img_dir)
         
         self.transform = transform
+
+    def __len__(self):
+        return len(self.image_list)
         
     def __getitem__(self, index):
         image_path = os.path.join(self.image_dir, self.image_list[index])
@@ -47,15 +50,11 @@ class CustomDataset(Dataset):
             y_data = pickle.load(fi)
         
         if self.transform:
-            x_data = self.transform(x_data)
-            y_data = self.transform(y_data)
+            x_data = self.transform(x_data.copy())
+            y_data = self.transform(y_data.copy())
         
         return x_data, y_data
-        
-    def __len__(self):
-        return len(self.image_list)
-    
-    
+
  
 def load_data(args):
     print("---------- Starting Loading Dataset ----------")
@@ -95,10 +94,10 @@ def load_data(args):
 
     
     train_dataset = CustomDataset(
-        args, train_transform
+        args, 'train', train_transform
     )
     val_dataset = CustomDataset(
-        args, valid_transform
+        args, 'validation', valid_transform
     )
     
     print('len of train dataset: ', len(train_dataset))
