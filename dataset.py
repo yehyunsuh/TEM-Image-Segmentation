@@ -23,21 +23,21 @@ class CustomDataset(Dataset):
         
         # file that have .ser files
         self.image_dir = args.data_dir+'/'+dtype+'/org_img'
-        self.image_list = os.listdir(self.image_dir)
+        self.image_list = list(self.df['ser_filename'])
         
         # file that have label's pickle file
         self.pickle_dir = args.data_dir+'/'+dtype+'/'+pnp+'/pickle'
-        self.pickle_list = os.listdir(self.pickle_dir)
+        self.pickle_list = list(self.df['pickle_filename'])
         
         # file that have label image file 
         self.lab_img_dir = args.data_dir+'/'+dtype+'/'+pnp+'/img'
-        self.lab_img_list = os.listdir(self.lab_img_dir)
+        self.lab_img_list = list(self.df['jpg(tif)_filename'])
         
         self.transform = transform
-
+    
     def __len__(self):
         return len(self.image_list)
-        
+    
     def __getitem__(self, index):
         image_path = os.path.join(self.image_dir, self.image_list[index])
         
@@ -54,8 +54,8 @@ class CustomDataset(Dataset):
             y_data = self.transform(y_data.copy())
         
         return x_data, y_data
+        
 
- 
 def load_data(args):
     print("---------- Starting Loading Dataset ----------")
     IMAGE_RESIZE = args.image_resize
@@ -97,7 +97,7 @@ def load_data(args):
         args, 'train', train_transform
     )
     val_dataset = CustomDataset(
-        args, 'validation', valid_transform
+        args, 'validation',valid_transform
     )
     
     print('len of train dataset: ', len(train_dataset))
