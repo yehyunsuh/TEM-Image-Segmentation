@@ -1,2 +1,2 @@
 # TEM_Image_Segmentation
-Jongyeon Yoon
+TEM Image Segmentation using UNet by Yehyun
