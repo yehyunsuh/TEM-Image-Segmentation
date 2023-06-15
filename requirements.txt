@@ -1,0 +1,7 @@
+hyperspy==1.7.4
+opencv-python==4.7.0.72
+pandas==2.0.2
+torch==1.13.1
+torchvision==0.14.1
+wandb==0.15.4
+segmentation-models-pytorch==0.3.3
