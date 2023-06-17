@@ -7,9 +7,7 @@ reference:
 """
 
 import torch
-import torch.nn as nn
 import numpy as np
-import wandb
 
 from tqdm import tqdm
 from log import log_results
@@ -57,7 +55,7 @@ def validate_function(args, DEVICE, model, epoch, loader):
 
             ## make predictions to be 0. or 1.
             predictions_binary = (predictions > 0.5).float()
-            dice_score += (2 * (predictions_binary * label).sum()) / ((predictions_binary + label).sum() + 1e-8)
+            dice_score += (2 * (predictions_binary * label).sum()) / ((predictions_binary + label).sum())
 
             if epoch == 0:
                 visualize.original_image(args, image, idx)

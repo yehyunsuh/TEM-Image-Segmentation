@@ -66,9 +66,9 @@ def load_data(args):
             transforms.ToTensor(),   
             transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE)),
 #             transforms.Normalize(mean = 0.464, std= 0.034),
-#             transforms.RandomHorizontalFlip(p=0.8), # flip
-#             transforms.RandomVerticalFlip(p=0.6)    
-#             transforms.RandomRotation(degrees= (-90, 90)), # rotate
+            transforms.RandomHorizontalFlip(p=0.1), # flip
+            transforms.RandomVerticalFlip(p=0.1),    
+            transforms.RandomRotation(degrees= (-15, 15)), # rotate
 #             transforms.ElasticTransform(), # elastic transform 
         ])
         valid_transform = transforms.Compose([
@@ -76,7 +76,7 @@ def load_data(args):
             transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE)),
 #             transforms.Normalize(mean = 0.464, std= 0.034),
 #             transforms.RandomHorizontalFlip(p=0.8), # flip
-#             transforms.RandomVerticalFlip(p=0.6)    
+#             transforms.RandomVerticalFlip(p=0.6),    
 #             transforms.RandomRotation(degrees= (-90, 90)), # rotate
 #             transforms.ElasticTransform(), # elastic transform 
          ])
