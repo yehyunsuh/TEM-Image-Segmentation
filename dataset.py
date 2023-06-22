@@ -11,14 +11,14 @@ import torchvision.transforms as transforms
 class CustomDataset(Dataset):
     def __init__(self, 
                  args,
-                 dtype,
+                 dtype, #'train' pr 'validation'
+                 pnp, # 'np' or 'pore' 
                  transform = None
                 ): 
         self.args = args
-        pnp = 'pore' if args.pore else 'np'
     
         # csv that contains metadata
-        csv_path = args.data_dir+'/'+dtype+'/'+dtype+'.csv'
+        csv_path = args.data_dir+'/'+dtype+'/'+pnp+'/'+dtype+'.csv'
         self.df = pd.read_csv(csv_path)
         
         # file that have .ser files
@@ -93,24 +93,42 @@ def load_data(args):
         ])
 
     
-    train_dataset = CustomDataset(
-        args, 'train', train_transform
+    np_train_dataset = CustomDataset(
+        args, 'train', 'np', train_transform
     )
-    val_dataset = CustomDataset(
-        args, 'validation',valid_transform
+    np_val_dataset = CustomDataset(
+        args, 'validation', 'np', valid_transform
     )
     
-    print('len of train dataset: ', len(train_dataset))
-    print('len of val dataset: ', len(val_dataset)) 
+    print('len of np train dataset: ', len(np_train_dataset))
+    print('len of np val dataset: ', len(np_val_dataset))     
+    
+    pore_train_dataset = CustomDataset(
+        args, 'train', 'pore', train_transform
+    )
+    pore_val_dataset = CustomDataset(
+        args, 'validation', 'pore', valid_transform
+    )
+    
+    print('len of pore train dataset: ', len(pore_train_dataset))
+    print('len of pore val dataset: ', len(pore_val_dataset)) 
     
     num_workers = 4 * torch.cuda.device_count()
-    train_loader = DataLoader(
-        train_dataset, shuffle=True, batch_size=BATCH_SIZE, num_workers=num_workers
+    
+    np_train_loader = DataLoader(
+        np_train_dataset, shuffle=True, batch_size=BATCH_SIZE, num_workers=num_workers
     )
-    val_loader = DataLoader(
-        val_dataset, shuffle=False, batch_size=1, num_workers=num_workers
+    np_val_loader = DataLoader(
+        np_val_dataset, shuffle=False, batch_size=1, num_workers=num_workers
     )
+    
+    pore_train_loader = DataLoader(
+        pore_train_dataset, shuffle=True, batch_size=BATCH_SIZE, num_workers=num_workers
+    )
+    pore_val_loader = DataLoader(
+        pore_val_dataset, shuffle=False, batch_size=1, num_workers=num_workers
+    )    
     
     print("---------- Loading Dataset Done ----------")
     
-    return train_loader, val_loader
+    return np_train_loader, np_val_loader, pore_train_loader, pore_val_loader 

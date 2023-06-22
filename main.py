@@ -12,7 +12,7 @@ def main(args):
     preprocess.customize_seed(args.seed) # set seed
     initiate_wandb(args) # initiate wandb
     
-    train_loader, val_loader = load_data(args)
+    np_train_loader, np_val_loader, pore_train_loader, pore_val_loader = load_data(args)
     
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     print(f'Torch is running on {DEVICE}')
@@ -27,8 +27,6 @@ if __name__ == '__main__':
     
     ## hyperparameters - data
     parser.add_argument('--data_dir', type=str, default='./dataset', help='data directory')
-    parser.add_argument('--train', action='store_true', help='train data or validation data')
-    parser.add_argument('--pore', action='store_true', help='pore or nano_particle')
     parser.add_argument('--image_resize', type=int, default=512, help='image resize value')
     parser.add_argument('--batch_size', type=int, default=8, help='batch size')
     parser.add_argument('--augmentation', action='store_true', help='whether to use augmentation')
