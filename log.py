@@ -12,5 +12,5 @@ def initiate_wandb(args):
 def log_results(loss, dice):
     wandb.log({
         'Train Loss': loss,
-        # 'Dice Score': dice,
+        'Dice Score': dice,
     })

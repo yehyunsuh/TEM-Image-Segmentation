@@ -18,15 +18,20 @@ def main(args):
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     print(f'Torch is running on {DEVICE}')
 
-    model = get_pretrained_model(args, DEVICE)
+    if args.pretrained:
+        model = get_pretrained_model(args, DEVICE)
+    else:
+        model = get_model(args, DEVICE)
     
-    loss_fn = nn.BCEWithLogitsLoss()
+    loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([args.loss_weight], device=DEVICE))
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     train(args, DEVICE, model, loss_fn, optimizer, train_loader, val_loader)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--pretrained', action='store_true', help='whether to use pretrained model or not')
     
     ## settings
     parser.add_argument('--seed', type=int, default=2023, help='seed customization for result reproduction')
@@ -41,7 +46,8 @@ if __name__ == '__main__':
     
     ## hyperparameters - model
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-4, help='learning rate')
-    parser.add_argument('--epochs', type=int, default=300, help='number of epochs')
+    parser.add_argument('--epochs', type=int, default=500, help='number of epochs')
+    parser.add_argument('--loss_weight', type=int, default=1, help='number of epochs')
     
     ## wandb
     parser.add_argument('--wandb', action='store_true', help='whether to use wandb or not')
