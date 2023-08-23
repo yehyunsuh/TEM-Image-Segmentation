@@ -5,7 +5,9 @@ import pickle
 import pandas as pd
 import numpy as np
 import hyperspy.api as hs
+import cv2
 import torchvision.transforms as transforms
+from border import get_border
 
 
 class CustomDataset(Dataset):
@@ -15,14 +17,14 @@ class CustomDataset(Dataset):
                  transform = None
                 ): 
         self.args = args
-        pnp = 'pore' if args.pore else 'np'
+        pnp = 'pore'
     
         # csv that contains metadata
-        csv_path = args.data_dir+'/'+dtype+'/'+dtype+'.csv'
+        csv_path = args.data_dir+'/'+dtype+'/'+pnp+'/'+dtype+'.csv'
         self.df = pd.read_csv(csv_path)
         
         # file that have .ser files
-        self.image_dir = args.data_dir+'/'+dtype+'/org_img'
+        self.image_dir = args.data_dir+'/'+dtype+'/'+pnp+'/org_img'
         self.image_list = list(self.df['ser_filename'])
         
         # file that have label's pickle file
@@ -30,7 +32,7 @@ class CustomDataset(Dataset):
         self.pickle_list = list(self.df['pickle_filename'])
         
         # file that have label image file 
-        self.lab_img_dir = args.data_dir+'/'+dtype+'/'+pnp+'/img'
+        self.lab_img_dir = args.data_dir+'/'+dtype+'/'+pnp+'/mask'
         self.lab_img_list = list(self.df['jpg(tif)_filename'])
         
         self.transform = transform
@@ -53,7 +55,11 @@ class CustomDataset(Dataset):
             x_data = self.transform(x_data.copy())
             y_data = self.transform(y_data.copy())
         
-        return x_data, y_data
+        img = cv2.imread(self.lab_img_dir+'/'+self.lab_img_list[index])
+        w_mask = get_border(self.args, img)
+        w_mask = w_mask.reshape(1,512,512)
+        
+        return x_data, y_data, w_mask
         
 
 def load_data(args):
@@ -100,8 +106,8 @@ def load_data(args):
         args, 'validation', valid_transform
     )
     
-    print('len of train dataset: ', len(train_dataset))
-    print('len of val dataset: ', len(val_dataset)) 
+    print('len of train dataset: ', train_dataset.__len__())
+    print('len of val dataset: ', val_dataset.__len__()) 
     
     num_workers = 4 * torch.cuda.device_count()
     train_loader = DataLoader(

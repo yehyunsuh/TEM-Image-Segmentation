@@ -7,6 +7,7 @@ reference:
 """
 
 import torch
+import torch.nn as nn
 import numpy as np
 
 from tqdm import tqdm
@@ -19,15 +20,19 @@ def train_function(args, DEVICE, model, loss_fn, optimizer, loader):
     total_loss = 0
     model.train()
 
-    for image, label in tqdm(loader):
+    for image, label, w_mask in tqdm(loader):
         ## change the label to have values between [0,1] 
         ## if not, loss will have negative values
         label = torch.clamp(label, min=0.0, max=1.0)
 
         image = image.float().to(device=DEVICE)
         label = label.to(device=DEVICE)
+        w_mask = w_mask.to(device=DEVICE)
         predictions = model(image)
 
+        if args.weight_on_border:
+            loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([args.loss_weight], device=DEVICE), weight=w_mask)
+        
         # calculate log loss with pixel value
         loss = loss_fn(predictions, label)
 
@@ -47,7 +52,7 @@ def validate_function(args, DEVICE, model, epoch, loader):
     dice_score = 0
 
     with torch.no_grad():
-        for idx, (image, label) in enumerate(tqdm(loader)):
+        for idx, (image, label, _) in enumerate(tqdm(loader)):
             label = torch.clamp(label, min=0.0, max=1.0)
 
             image = image.float().to(DEVICE)
@@ -80,7 +85,7 @@ def train(
     visualize.create_directories(args)
     
     for epoch in range(args.epochs):
-        print(f"\nRunning Epoch # {epoch}")
+        print(f"\nRunning Epoch # {epoch+1}")
 
         model, loss, mean_loss = train_function(
             args, DEVICE, model, loss_fn, optimizer, train_loader
