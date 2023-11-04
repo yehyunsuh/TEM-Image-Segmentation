@@ -35,6 +35,10 @@ class CustomDataset(Dataset):
         self.lab_img_dir = args.data_dir+'/'+dtype+'/'+pnp+'/mask'
         self.lab_img_list = list(self.df['jpg(tif)_filename'])
         
+        # file that have pore's info pickle files 
+        self.info_dir = args.data_dir+'/'+dtype+'/'+pnp+'/info_pickle'
+        self.info_list = list(self.df['pickle_filename'])
+        
         self.transform = transform
     
     def __len__(self):
@@ -50,6 +54,13 @@ class CustomDataset(Dataset):
         # label data (2048, 2048), numpy.ndarray
         with open(self.pickle_dir+'/'+self.pickle_list[index],"rb") as fi:
             y_data = pickle.load(fi)
+            
+        # pore info, list, [# of pore, [# of pore's pixel]]
+        with open(self.info_dir+'/'+self.info_list[index],"rb") as fi:
+            pixel_info = pickle.load(fi)
+        
+        num_pore = pixel_info[0]
+        num_pixel = pixel_info[1]
         
         if self.transform:
             x_data = self.transform(x_data.copy())
@@ -59,7 +70,7 @@ class CustomDataset(Dataset):
         w_mask = get_border(self.args, img)
         w_mask = w_mask.reshape(1,512,512)
         
-        return x_data, y_data, w_mask
+        return x_data, y_data, w_mask, num_pore, num_pixel   
         
 
 def load_data(args):
@@ -70,7 +81,7 @@ def load_data(args):
     if args.augmentation:
         train_transform = transforms.Compose([
             transforms.ToTensor(),   
-            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE)),
+            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE), antialias=None),
 #             transforms.Normalize(mean = 0.464, std= 0.034),
             transforms.RandomHorizontalFlip(p=0.1), # flip
             transforms.RandomVerticalFlip(p=0.1),    
@@ -79,7 +90,7 @@ def load_data(args):
         ])
         valid_transform = transforms.Compose([
             transforms.ToTensor(),   
-            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE)),
+            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE), antialias=None),
 #             transforms.Normalize(mean = 0.464, std= 0.034),
 #             transforms.RandomHorizontalFlip(p=0.8), # flip
 #             transforms.RandomVerticalFlip(p=0.6),    
@@ -90,12 +101,12 @@ def load_data(args):
     else:
         train_transform = transforms.Compose([
             transforms.ToTensor(),   
-            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE)),
+            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE), antialias=None),
         ])
     
         valid_transform = transforms.Compose([
             transforms.ToTensor(),   
-            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE)),
+            transforms.Resize((IMAGE_RESIZE, IMAGE_RESIZE), antialias=None),
         ])
 
     
