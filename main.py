@@ -51,6 +51,14 @@ if __name__ == '__main__':
     parser.add_argument('--image_resize', type=int, default=512, help='image resize value')
     parser.add_argument('--batch_size', type=int, default=8, help='batch size')
     parser.add_argument('--augmentation', action='store_true', help='whether to use augmentation')
+    parser.add_argument('--prediction_threshold', type=float, default=0.5, help='threshold that makes prediction binary')
+    
+    # distribution loss
+    parser.add_argument('--max_pore', type=int, default=155, help='maximum number of pore in an image')
+    parser.add_argument('--distribution_loss', action='store_true', help='whether to use loss based on distribution')
+    parser.add_argument('--dist_loss', action='store_true', help='become True when count becomes 5 and use distribution loss')
+    parser.add_argument('--weight_num', type=int, default=1e-4, help='weight on the number of pores (or np)')
+    parser.add_argument('--weight_pixel', type=int, default=1e-4, help='weight on the number of pixels of pores (or np)')
     
     # weight on border
     parser.add_argument('--weight_on_border', action='store_true', help='whether to wight border') # whether to give weight on border 
