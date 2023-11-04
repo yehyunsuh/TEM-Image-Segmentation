@@ -31,7 +31,9 @@ def create_directories(args):
         os.mkdir(f'./visualization/{args.wandb_name}/prediction')
     if not os.path.exists(f'./visualization/{args.wandb_name}/label'):
         os.mkdir(f'./visualization/{args.wandb_name}/label')
-
+    if not os.path.exists(f'./visualization/{args.wandb_name}/prediction_color'):
+        os.mkdir(f'./visualization/{args.wandb_name}/prediction_color')
+    
 
 def original_image(args, image, idx):
     image_normalized = image * (1.0/image.max())
@@ -72,3 +74,48 @@ def original_image_with_prediction(args, image, predictions_binary, idx, epoch):
     for i in range(len(image[0])):
         overlaid_image = Image.blend(Image.fromarray(image_normalized[i][0]), Image.fromarray(predictions_binary[i][0]), 0.2)
         overlaid_image.save(f'./visualization/{args.wandb_name}/prediction/epoch_{epoch}_prediction_{idx}.png')
+        
+        
+def original_image_with_prediction_color(args, image, predictions_binary, label, idx, epoch):
+    image_normalized = image * (255.0/image.max())
+    image_normalized = image_normalized.detach().cpu().numpy()
+    image_normalized = image_normalized.astype(np.uint8)
+
+    label_normalized = label*(1/label.max())
+    label_normalized = label_normalized.detach().cpu().numpy()
+
+    predictions_binary = predictions_binary.detach().cpu().numpy()
+
+    for i in range(len(image)):
+        p_b = predictions_binary[i][0]
+        y_b = label_normalized[i][0]
+
+        r = y_b - p_b # predict O but X
+        r = r.clip(0)
+        r = r.astype(np.uint8)
+
+        b = p_b - y_b # predict X but O
+        b = b.clip(0)
+        b = b.astype(np.uint8)
+
+        g = np.zeros(r.shape)
+
+        mask = np.stack((r,g,b),axis=0)
+        mask = np.transpose(mask, (1, 2, 0)) # [C,H,W] -> [H,W,C]
+        mask = mask*255
+
+        img = image_normalized[i]
+        img = np.transpose(img, (1, 2, 0)) # [C,H,W] -> [H,W,C]
+
+        blended = img*0.4 + mask*0.6
+        blended = blended.astype(np.uint8)
+
+        blended = Image.fromarray(blended)
+        blended.save(f'./visualization/{args.wandb_name}/prediction_color/epoch_{epoch}_prediction_color_{idx}.png')
+        
+
+def image_w_heatmap(args, idx, image_name, epoch, prediction):
+    for i in range(len(prediction[0])):
+        plt.imshow(prediction[0][i].detach().cpu().numpy(), interpolation='nearest')
+        plt.axis('off')
+        plt.savefig(f'./results/{args.wandb_name}/heatmap/label{i}/{image_name}_{epoch}_heatmap.png', bbox_inches='tight', pad_inches=0, dpi=150)
