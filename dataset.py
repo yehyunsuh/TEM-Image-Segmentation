@@ -55,11 +55,11 @@ class CustomDataset(Dataset):
         with open(self.pickle_dir+'/'+self.pickle_list[index],"rb") as fi:
             y_data = pickle.load(fi)
             
-        # pore info, list, [# of pore, [# of pore's pixel]]
+        # unit info, list, [# of unit, [# of unit's pixel]]
         with open(self.info_dir+'/'+self.info_list[index],"rb") as fi:
             pixel_info = pickle.load(fi)
         
-        num_pore = pixel_info[0]
+        num_unit = pixel_info[0]
         num_pixel = pixel_info[1]
         
         if self.transform:
@@ -70,7 +70,7 @@ class CustomDataset(Dataset):
         w_mask = get_border(self.args, img)
         w_mask = w_mask.reshape(1,512,512)
         
-        return x_data, y_data, w_mask, num_pore, num_pixel   
+        return x_data, y_data, w_mask, num_unit, num_pixel   
         
 
 def load_data(args):
