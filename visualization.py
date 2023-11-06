@@ -113,6 +113,8 @@ def original_image_with_prediction_color(args, image, predictions_binary, label,
         blended = Image.fromarray(blended)
         blended.save(f'./visualization/{args.wandb_name}/prediction_color/epoch_{epoch}_prediction_color_{idx}.png')
         
+        return blended
+        
 
 def image_w_heatmap(args, idx, image_name, epoch, prediction):
     for i in range(len(prediction[0])):

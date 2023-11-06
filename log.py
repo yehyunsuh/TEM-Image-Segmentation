@@ -7,10 +7,11 @@ def initiate_wandb(args):
             entity=f"{args.wandb_entity}",
             name=f"{args.wandb_name}"
         )
+        wandb.config.update(args)
 
 
-def log_results(loss, dice):
+def log_results(loss, dice, epoch):
     wandb.log({
         'Train Loss': loss,
-        'Dice Score': dice,
-    })
+        'Dice Score': dice
+    }, step = epoch)

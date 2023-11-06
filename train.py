@@ -9,6 +9,7 @@ reference:
 import torch
 import torch.nn as nn
 import numpy as np
+import wandb
 
 from tqdm import tqdm
 from log import log_results
@@ -103,13 +104,20 @@ def validate_function(args, DEVICE, model, epoch, loader):
             ## make predictions to be 0. or 1.
             prediction_binary = (prediction > args.prediction_threshold).float()
             dice_score += (2 * (prediction_binary * label).sum()) / ((prediction_binary + label).sum())
-
+            
             if epoch == 0:
                 visualize.original_image(args, image, idx)
                 visualize.original_image_with_label(args, image, label, idx)
+            
             if epoch % int(args.epochs / 5) == 0 or args.epochs - 1 == epoch:
                 visualize.original_image_with_prediction(args, image, prediction_binary, idx, epoch)
-                visualize.original_image_with_prediction_color(args, image, prediction_binary, label, idx, epoch) 
+                img = visualize.original_image_with_prediction_color(args, image, prediction_binary, label, idx, epoch)
+                if args.wandb:
+                    img = wandb.Image(img, caption=f"Image {idx}")
+                    wandb.log({
+                        f'Validation result {idx}' : img,
+                    }, step = epoch)
+                
 
     dice = dice_score/len(loader)
     print(f"Dice score: {dice}")
@@ -123,10 +131,11 @@ def train(
     ):
     count, pth_save_point = 0, 0
     best_loss = np.inf
+    best_dice = -np.inf
     visualize.create_directories(args)
     
     for epoch in range(args.epochs):
-        print(f"\nRunning Epoch # {epoch+1}")
+        print(f"\nRunning Epoch # {epoch}")
 
         model, loss, mean_loss = train_function(
             args, DEVICE, model, loss_fn, optimizer, train_loader
@@ -149,7 +158,14 @@ def train(
             if count > 5:
                 args.dist_loss = True
                 
+        if best_dice < dice:
+            best_dice = dice
+        
         if args.wandb:
             log_results(
-                mean_loss, dice
+                mean_loss, dice, epoch
             )
+            
+        if epoch == args.epochs-1:
+            wandb.alert(f"Training Task Finished", f"Best dice score: {best_dice:.5f},  Best loss: {best_loss:.5f}")
+            
