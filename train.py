@@ -10,9 +10,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 import wandb
+import pickle
 
 from tqdm import tqdm
-from log import log_results
+from log import log_results, make_dir
 
 import visualization as visualize
 import bfs as bfs
@@ -100,7 +101,7 @@ def validate_function(args, DEVICE, model, epoch, loader):
             label = label.to(DEVICE)
             
             prediction = model(image)
-
+            
             ## make predictions to be 0. or 1.
             prediction_binary = (prediction > args.prediction_threshold).float()
             dice_score += (2 * (prediction_binary * label).sum()) / ((prediction_binary + label).sum())
@@ -134,6 +135,14 @@ def train(
     best_dice = -np.inf
     visualize.create_directories(args)
     
+    if args.save_result:
+        # mean losses
+        losses = []
+        b_loss = {'best_loss' : best_loss, 'epoch' : 0}
+        # dice scores
+        scores = []
+        b_score = {'best_dice' : best_dice, 'epoch' : 0}
+    
     for epoch in range(args.epochs):
         print(f"\nRunning Epoch # {epoch}")
 
@@ -148,11 +157,18 @@ def train(
             "state_dict": model.state_dict(),
             "optimizer":  optimizer.state_dict(),
         }
+        
+        if args.save_result:
+            losses.append(mean_loss)
+            scores.append(dice.item())
 
         print("Current loss: ", loss, mean_loss)
         if best_loss > mean_loss:
             print("=====New best model=====")
             best_loss, count = mean_loss, 0
+            if args.save_result:
+                b_loss['best_loss'] = best_loss
+                b_loss['epoch'] = epoch
         else:
             count += 1
             if count > 5:
@@ -160,6 +176,9 @@ def train(
                 
         if best_dice < dice:
             best_dice = dice
+            if args.save_result:
+                b_score['best_dice'] = best_dice.item()
+                b_score['epoch'] = epoch
         
         if args.wandb:
             log_results(
@@ -167,5 +186,21 @@ def train(
             )
             
         if epoch == args.epochs-1:
-            wandb.alert(f"Training Task Finished", f"Best dice score: {best_dice:.5f},  Best loss: {best_loss:.5f}")
-            
+            if args.wandb:
+                wandb.alert(f"Training Task Finished", f"Best dice score: {best_dice:.5f},  Best loss: {best_loss:.5f}")
+            elif args.save_result:
+                make_dir(args)
+                # save loss_list
+                with open(f'./result/{args.wandb_name}/loss/loss_list.pkl', 'wb') as f:
+                    pickle.dump(losses, f)
+                # save best_loss
+                with open(f'./result/{args.wandb_name}/loss/best_loss.pkl', 'wb') as f:
+                    pickle.dump(b_loss, f)
+                # save score_list
+                with open(f'./result/{args.wandb_name}/score/score_list.pkl', 'wb') as f:
+                    pickle.dump(scores, f)                  
+                # save best_score
+                with open(f'./result/{args.wandb_name}/score/best_score.pkl', 'wb') as f:
+                    pickle.dump(b_score, f)                  
+                
+                print(f"<<<<<Training Task {args.wandb_name} Finished>>>>>")

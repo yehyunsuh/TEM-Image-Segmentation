@@ -1,4 +1,5 @@
 import wandb
+import os
 
 def initiate_wandb(args):
     if args.wandb:
@@ -15,3 +16,15 @@ def log_results(loss, dice, epoch):
         'Train Loss': loss,
         'Dice Score': dice
     }, step = epoch)
+   
+
+def make_dir(args):
+    if not os.path.exists(f'./result'):
+        os.mkdir(f'./result')
+    if not os.path.exists(f'./result/{args.wandb_name}'):
+        os.mkdir(f'./result/{args.wandb_name}')
+    if not os.path.exists(f'./result/{args.wandb_name}/loss'):
+        os.mkdir(f'./result/{args.wandb_name}/loss')
+    if not os.path.exists(f'./result/{args.wandb_name}/score'):
+        os.mkdir(f'./result/{args.wandb_name}/score')
+    

@@ -53,14 +53,14 @@ if __name__ == '__main__':
     parser.add_argument('--augmentation', action='store_true', help='whether to use augmentation')
     parser.add_argument('--prediction_threshold', type=float, default=0.5, help='threshold that makes prediction binary')
     
-    # distribution loss
+    ## distribution loss
     parser.add_argument('--max_pore', type=int, default=155, help='maximum number of pore in an image')
     parser.add_argument('--distribution_loss', action='store_true', help='whether to use loss based on distribution')
     parser.add_argument('--dist_loss', action='store_true', help='become True when count becomes 5 and use distribution loss')
     parser.add_argument('--weight_num', type=int, default=1e-4, help='weight on the number of pores (or np)')
     parser.add_argument('--weight_pixel', type=int, default=1e-4, help='weight on the number of pixels of pores (or np)')
     
-    # weight on border
+    ## weight on border
     parser.add_argument('--weight_on_border', action='store_true', help='whether to wight border') # whether to give weight on border 
     parser.add_argument('--weight', type=int, default=40, help='how much weight to impose on border') # how much weight to give on border
     parser.add_argument('--s_weight', action='store_true', help='use special weight') # give weight by method Yehyun suggested
@@ -75,6 +75,9 @@ if __name__ == '__main__':
     parser.add_argument('--wandb_project', type=str, default="TEM_Image_Segmentation", help='wandb project name')
     parser.add_argument('--wandb_entity', type=str, default="tem_seg", help='wandb entity name')
     parser.add_argument('--wandb_name', type=str, default="JY_exp_bweight_40", help='wandb name')
+    
+    ## save result (when not using wandb)
+    parser.add_argument('--save_result', action='store_true', help='whether to save result when not using wandb')
     
     args = parser.parse_args()
     main(args)
